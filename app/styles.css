@@ -1,0 +1,17 @@
+@charset "UTF-8";
+*::after,
+*::before {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+:root {
+  --black: #1B1A17;
+  --grey: #1F1E1B;
+  --brown: #A35709;
+  --orange: #FF8303;
+  --egg-shell: #F0E3CA;
+  --font-family: Georgia, "Times New Roman", Times, serif;
+  font-size: 14px;
+}
