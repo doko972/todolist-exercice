@@ -10,6 +10,7 @@
 
 <body>
     <?php
+    // var_dump($_SERVER);
     try {
         $dbConnect = new PDO(
             'mysql:host=db;
@@ -18,6 +19,8 @@
             'tama',
             'tekmate'
         );
+
+
 
         $dbConnect->setAttribute(
             PDO::ATTR_DEFAULT_FETCH_MODE,
@@ -28,9 +31,30 @@
         die('Erreur connexion mysql' . $e->getMessage());
     }
 
-    $query = $dbConnect->prepare("SELECT priority, description, creation_date, done FROM task;");
+    $query = $dbConnect->prepare("SELECT priority, description, creation_date, done FROM task ORDER BY priority DESC;");
+
     $query->execute();
     $result = $query->fetchAll();
+
+    /*INSERT*/
+    if (!empty($_POST)) {
+        // var_dump('test');
+        if (
+            isset($_POST['description'])
+            && strlen($_POST['description']) > 0
+            && strlen($_POST['description']) <= 50
+        ) {
+            $insert = $dbConnect->prepare("INSERT INTO `task` (`priority`, `description`, `creation_date`, `done`) 
+            VALUES (:priority, :description, NOW(), 0);");
+
+            $insert->bindValue(':priority', htmlspecialchars($_POST['priority']));
+            $insert->bindValue(':description', htmlspecialchars($_POST['description']));
+            $isInsertOk = $insert->execute();
+
+            $nb = $insert->rowCount();
+        }
+    }
+
     ?>
     <section>
         <h1>Fiche de tâches</h1>
@@ -38,13 +62,18 @@
             <h2>Créer une tâche</h2>
             <form method="POST" action="">
                 <div class="task__list__create">
-                    <input class="container__post--text" type="text" name="title" placeholder="Ajouter chose(s) à faire"
-                        required>
+                    <input class="container__post--text" type="text" name="description"
+                        placeholder="Ajouter chose(s) à faire" required>
+                    <select name="priority">
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
                     <button type="submit" name="button__add" class="button__add-task">+</button>
                 </div>
             </form>
             <div class="task__list">
-                <div class="no-tasks">Pas de tâches</div>
+                <!-- <div class="no-tasks">Pas de tâches</div> -->
                 <div class="task-item">
                     <?php foreach ($result as $product) {
                         echo '<ul class="task-title">';
