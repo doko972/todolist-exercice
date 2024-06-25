@@ -1,53 +1,48 @@
 <?php
+session_start();
 include "include/_config.php";
-// include "include/_token.php";
+include "include/_functions.php";
 
-session_start(); // important pour demarrer $_SESSION
-//stocker la donnée coté serveur pour chaque utilisateur
-if (!isset($_SESSION['token'])) {
-    $_SESSION['token'] = md5(uniqid(mt_rand(), true));
-}
+generateToken(); 
 
-// tokenCreate($SERVER);
+if (!empty($_POST['description'])) { 
 
-// $query = $dbConnect->prepare("SELECT priority, description, creation_date, done FROM task ORDER BY priority DESC;");
-// $query->execute();
+    if (!isset($_SESSION['token']) || !isset($_POST['token']) || $_SESSION['token'] !== $_POST['token']) {
+        header('Location: index.php?error=csrf');
+        exit;
+    }
 
+    if (!isset($_SERVER['HTTP_REFERER']) || !str_contains($_SERVER['HTTP_REFERER'], 'http://localhost:8080')) {
+        header('Location: index.php?error=referer');
+        exit;
+    }
 
-$addRequest = '<p>La tâche à été ajouté</p>';
-
-/*INSERT*/
-if (!empty($_POST)) {
-    // L'user est'il bien chez moi
-    if (isset($_SERVER['HTTP_REFERER']) && str_contains($_SERVER['HTTP_REFERER'], 'http://localhost:8080')) {
-        // var_dump('http referer ok');
-        if (isset($_SESSION['token']) && isset($_POST['token']) && $_SESSION['token'] === $_POST['token']) {
-            if (
-                isset($_POST['description'])
-                && strlen($_POST['description']) > 0
-                && strlen($_POST['description']) <= 50
-            ) {
-                $insert = $dbConnect->prepare("INSERT INTO `task` (`priority`, `description`, `creation_date`, `done`) 
+    if (strlen($_POST['description']) > 0 && strlen($_POST['description']) <= 150) {
+        $insert = $dbConnect->prepare("INSERT INTO `task` (`priority`, `description`, `creation_date`, `done`) 
             VALUES (:priority, :description, NOW(), 0);");
-
-                $insert->bindValue(':priority', htmlspecialchars($_POST['priority']));
-                $insert->bindValue(':description', htmlspecialchars($_POST['description']));
-                $isInsertOk = $insert->execute();
-                $nb = $insert->rowCount();
-
-                if ($isInsertOk) {
-                    echo $addRequest;
-                } else {
-                    echo "<p>Erreur lors de l'ajout d'une tâche</p>";
-                }
-            }
+        $insert->bindValue(':priority', htmlspecialchars($_POST['priority']));
+        $insert->bindValue(':description', htmlspecialchars($_POST['description']));
+        if ($insert->execute()) {
+            header('Location: index.php?msg=insert_ok');
+        } else {
+            header('Location: index.php?msg=insert_ko');
         }
-
-    } else {
-        echo '<div class="no-tasks">Pas de tâches</div>';
+        exit;
     }
 }
 
+
+if (!empty($_POST['task_id']) && !empty($_POST['token']) && $_POST['token'] === $_SESSION['token']) {
+    $taskId = intval($_POST['task_id']);
+    $delete = $dbConnect->prepare("DELETE FROM task WHERE id_task = :task_id");
+    $delete->bindParam(':task_id', $taskId, PDO::PARAM_INT);
+    if ($delete->execute()) {
+        header("Location: index.php?msg=delete_success");
+    } else {
+        header("Location: index.php?msg=delete_failure");
+    }
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -60,9 +55,22 @@ if (!empty($_POST)) {
 </head>
 
 <body>
-
     <section>
         <h1>Fiche de tâches</h1>
+        <?php
+        $error = [
+            'csrf' => 'Session invalide ou modifiée',
+            'referer' => 'Référent non autorisé',
+            'insert_ko' => 'Échec de l\'insertion de la tâche',
+            'delete_failure' => 'Échec de la suppression de la tâche'
+        ];
+        $message = ['insert_ok' => 'Tâche ajoutée avec succès.', 'delete_success' => 'Tâche supprimée avec succès.'];
+
+        if (isset($_GET['msg'])) {
+            $msgType = isset($error[$_GET['msg']]) ? $error : $message;
+            echo '<p>' . $msgType[$_GET['msg']] . '</p>';
+        }
+        ?>
         <div class="container">
             <h2>Créer une tâche</h2>
             <form method="POST" action="">
@@ -75,23 +83,27 @@ if (!empty($_POST)) {
                         <option value="Medium">Moyen</option>
                         <option value="Low">Bas</option>
                     </select>
-                </div>
-                <button type="submit" name="button__add" class="button__add-task">+</button>
+                    <button type="submit" name="button__add" class="button__add-task">Ajouter une tâche</button>
             </form>
             <div class="task__list">
-
                 <div class="task-item">
-                    <?php 
-                    $query = $dbConnect->prepare("SELECT priority, description, creation_date, done FROM task ORDER BY priority DESC;");
+                    <?php
+                    $query = $dbConnect->prepare("SELECT id_task, priority, description, creation_date, done 
+                    FROM task ORDER BY priority DESC;");
                     $query->execute();
                     $result = $query->fetchAll();
-                    foreach ($result as $product) {
+                    foreach ($result as $task) {
                         echo '<ul class="task-title">';
-                        echo '<li class="container__post--text ">' . $product['priority'] . ' - ' . $product['description'] . ' ' . $product['creation_date'] . '<button class="button__remove">x</button>' . '</li>';
-                        echo '<div>';
-                        echo '<label for="done">Fait</label>';
-                        echo '<input class="done" type="checkbox" id="done" name="done" checked />';
-                        echo '</div>';
+                        echo '<li class="container__post--text">' 
+                        . htmlspecialchars($task['priority']) . ' - ' 
+                        . htmlspecialchars($task['description']) . ' ' 
+                        . htmlspecialchars($task['creation_date']);
+                        echo '<form method="POST" action="" style="display: inline;">';
+                        echo '<input type="hidden" name="task_id" value="' 
+                        . htmlspecialchars($task['id_task']) . '">';
+                        echo '<input type="hidden" name="token" value="' . $_SESSION['token'] . '">';
+                        echo '<button type="submit" class="button__remove">x</button>';
+                        echo '</form></li>';
                         echo '</ul>';
                     } ?>
                 </div>
@@ -99,31 +111,5 @@ if (!empty($_POST)) {
         </div>
     </section>
 </body>
+
 </html>
-
-
-
-
-<!-- <section>
-    <div class="alert-task" id="alert-task">
-            <div class="alert-task-content">
-                <div class="alert-task-header">
-                    <h2>La tâche à bien été ajouté</h2>
-                </div>
-                <div class="alert-task-body">
-                    <button class="alert-task-button" id="validButton">Ok</button>
-                </div>
-            </div>
-        </div>
-        <div class="alert-task" id="alert-task">
-            <div class="alert-task-content">
-                <div class="alert-task-header">
-                    <h2>Supprimer cette tâche?</h2>
-                </div>
-                <div class="alert-task-body">
-                    <button class="alert-task-button" id="yesButton">Oui</button>
-                    <button class="alert-task-button" id="noButton">Non</button>
-                </div>
-            </div>
-        </div>
-    </section> -->
