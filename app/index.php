@@ -1,27 +1,17 @@
-<!DOCTYPE html>
-<html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liste de tâches</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-
-<body>
-    <?php
-    // var_dump($_SERVER);
+<?php
+    session_start(); // important pour demarrer $_SESSION
+    //stocker la donnée coté serveur pour chaque utilisateur
+    if (!isset($_SESSION['token'])){
+        $_SESSION['token'] = md5(uniqid(mt_rand(), true));
+    }
     try {
         $dbConnect = new PDO(
             'mysql:host=db;
-        dbname=todolist;
-        charset=utf8',
+            dbname=todolist;
+            charset=utf8',
             'tama',
             'tekmate'
         );
-
-
-
         $dbConnect->setAttribute(
             PDO::ATTR_DEFAULT_FETCH_MODE,
             PDO::FETCH_ASSOC
@@ -38,24 +28,43 @@
 
     /*INSERT*/
     if (!empty($_POST)) {
-        // var_dump('test');
-        if (
-            isset($_POST['description'])
-            && strlen($_POST['description']) > 0
-            && strlen($_POST['description']) <= 50
-        ) {
-            $insert = $dbConnect->prepare("INSERT INTO `task` (`priority`, `description`, `creation_date`, `done`) 
+        // L'user est'il bien chez moi
+        if (isset($_SERVER['HTTP_REFERER']) && str_contains($_SERVER['HTTP_REFERER'], 'http://localhost:8080/index.php')) {
+            if (isset($_SESSION['token']) && isset($_POST['token']) && $_SESSION['token'] === $_POST['token']) {
+                if (
+                    isset($_POST['description'])
+                    && strlen($_POST['description']) > 0
+                    && strlen($_POST['description']) <= 50
+                ) {
+                    $insert = $dbConnect->prepare("INSERT INTO `task` (`priority`, `description`, `creation_date`, `done`) 
             VALUES (:priority, :description, NOW(), 0);");
 
-            $insert->bindValue(':priority', htmlspecialchars($_POST['priority']));
-            $insert->bindValue(':description', htmlspecialchars($_POST['description']));
-            $isInsertOk = $insert->execute();
-
-            $nb = $insert->rowCount();
+                    $insert->bindValue(':priority', htmlspecialchars($_POST['priority']));
+                    $insert->bindValue(':description', htmlspecialchars($_POST['description']));
+                    $isInsertOk = $insert->execute();
+                    $nb = $insert->rowCount();
+                }
+            }
+            else {
+                var_dump($_SESSION);
+            }
+            
         }
     }
 
     ?>
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste de tâches</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
     <section>
         <h1>Fiche de tâches</h1>
         <div class="container">
@@ -64,10 +73,11 @@
                 <div class="task__list__create">
                     <input class="container__post--text" type="text" name="description"
                         placeholder="Ajouter chose(s) à faire" required>
+                    <input type="hidden" name="token" value="<?=$_SESSION['token']?>">
                     <select name="priority">
-                        <option value="High">High</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Low">Low</option>
+                        <option value="High">Haut</option>
+                        <option value="Medium">Moyen</option>
+                        <option value="Low">Bas</option>
                     </select>
                     <button type="submit" name="button__add" class="button__add-task">+</button>
                 </div>
