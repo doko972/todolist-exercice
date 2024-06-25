@@ -34,6 +34,11 @@ body {
     border-radius: 10px;
     width: 300px;
 }
+@media screen and (min-width: 500px) {
+    .container{
+        width: 100%;
+    }
+}
 
 h1,
 h2 {
@@ -48,7 +53,6 @@ ul {
 
 .task__list__create {
     display: flex;
-    flex-direction: column;
     gap: 10px;
     margin-bottom: 20px;
     align-items: center;
@@ -101,6 +105,15 @@ ul {
 
 .button__remove:active {
     background-color: darken(var(--brown), 20%);
+}
+
+.select__priority {
+    background-color: var(--orange);
+    border: solid 2px var(--orange);
+    border-radius: 5px;
+    padding: 10px;
+    color: var(--egg-shell);
+    cursor: pointer;
 }
 
 .task__list {
@@ -184,4 +197,30 @@ ul {
 .alert-task-button:hover {
     background-color: var(--orange);
     color: var(--black);
+}
+/*check box*/
+.done {
+    width: 2rem;
+    height: 2rem;
+    appearance: none;
+    border: 2px solid var(--brown);
+    border-radius: 0.2rem;
+    position: relative;
+}
+
+.done:checked {
+    border-color: var(--brown);
+}
+
+.done:checked:after {
+    content: url('img/check.svg');
+    width: 0.625rem;
+    height: 0.625rem;
+    position: absolute;
+    bottom: 3rem;
+    right: 2rem;
+}
+
+label {
+    margin-left: 0.25rem;
 }
