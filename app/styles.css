@@ -9,7 +9,7 @@
 
 :root {
     --black: #1B1A17;
-    --grey: #1F1E1B;
+    --grey: #9a968b;
     --brown: #A35709;
     --orange: #FF8303;
     --egg-shell: #F0E3CA;
@@ -18,10 +18,11 @@
 }
 
 body {
-    background-color: var(--grey);
+    background-color: var(--black);
     color: var(--egg-shell);
     font-family: var(--font-family);
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
@@ -53,6 +54,7 @@ ul {
 
 .task__list__create {
     display: flex;
+    flex-direction: column;
     gap: 10px;
     margin-bottom: 20px;
     align-items: center;
@@ -65,7 +67,7 @@ ul {
     padding: 10px;
     border: 1px solid var(--orange);
     border-radius: 5px;
-    background-color: var(--grey);
+    background-color: var(--black);
     color: var(--egg-shell);
     width: 100%;
 }
@@ -132,7 +134,7 @@ ul {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    background-color: var(--grey);
+    background-color: var(--black);
     border-radius: 5px;
     margin: 0 2rem 1rem 0;
 }

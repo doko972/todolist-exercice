@@ -3,19 +3,25 @@ session_start();
 include "include/_config.php";
 include "include/_functions.php";
 
-generateToken(); 
+// var_dump($_SERVER['REQUEST_METHOD']);
+generateToken();
 
-if (!empty($_POST['description'])) { 
+if (!empty($_POST['description'])) {
 
-    if (!isset($_SESSION['token']) || !isset($_POST['token']) || $_SESSION['token'] !== $_POST['token']) {
-        header('Location: index.php?error=csrf');
-        exit;
-    }
+    // if (!isset($_SERVER['HTTP_REFERER']) || !str_contains($_SERVER['HTTP_REFERER'], 'http://localhost:8080')) {
+    //     $_SESSION['error'] = 'referer';
+    //     header('Location: index.php');
+    //     exit;
+    // }
+    // if (!isset($_SESSION['token']) || !isset($_POST['token']) || $_SESSION['token'] !== $_POST['token']) {
+    //     $_SESSION['error'] = 'csrf';
+    //     header('Location: index.php'); //generation d'un token
+    //     exit;
+    // }
+    $newUrl = 'http://localhost:8080/index.php';
+    refererHttp($newUrl);
+    errorCsrf();
 
-    if (!isset($_SERVER['HTTP_REFERER']) || !str_contains($_SERVER['HTTP_REFERER'], 'http://localhost:8080')) {
-        header('Location: index.php?error=referer');
-        exit;
-    }
 
     if (strlen($_POST['description']) > 0 && strlen($_POST['description']) <= 150) {
         $insert = $dbConnect->prepare("INSERT INTO `task` (`priority`, `description`, `creation_date`, `done`) 
@@ -69,6 +75,7 @@ if (!empty($_POST['task_id']) && !empty($_POST['token']) && $_POST['token'] === 
         if (isset($_GET['msg'])) {
             $msgType = isset($error[$_GET['msg']]) ? $error : $message;
             echo '<p>' . $msgType[$_GET['msg']] . '</p>';
+            unset($_SESSION['error']);
         }
         ?>
         <div class="container">
@@ -79,9 +86,9 @@ if (!empty($_POST['task_id']) && !empty($_POST['token']) && $_POST['token'] === 
                         placeholder="Ajouter chose(s) à faire" required>
                     <input type="hidden" name="token" value="<?= $_SESSION['token'] ?>">
                     <select class="select__priority" name="priority">
-                        <option value="High">Haut</option>
-                        <option value="Medium">Moyen</option>
-                        <option value="Low">Bas</option>
+                        <option value="Haut">Haut</option>
+                        <option value="Moyen">Moyen</option>
+                        <option value="Bas">Bas</option>
                     </select>
                     <button type="submit" name="button__add" class="button__add-task">Ajouter une tâche</button>
             </form>
@@ -92,15 +99,15 @@ if (!empty($_POST['task_id']) && !empty($_POST['token']) && $_POST['token'] === 
                     FROM task ORDER BY priority DESC;");
                     $query->execute();
                     $result = $query->fetchAll();
-                    foreach ($result as $task) {
+                    foreach ($result as $product) {
                         echo '<ul class="task-title">';
-                        echo '<li class="container__post--text">' 
-                        . htmlspecialchars($task['priority']) . ' - ' 
-                        . htmlspecialchars($task['description']) . ' ' 
-                        . htmlspecialchars($task['creation_date']);
+                        echo '<li class="container__post--text">'
+                            . htmlspecialchars($product['priority']) . ' - '
+                            . htmlspecialchars($product['description']) . ' '
+                            . htmlspecialchars($product['creation_date']);
                         echo '<form method="POST" action="" style="display: inline;">';
-                        echo '<input type="hidden" name="task_id" value="' 
-                        . htmlspecialchars($task['id_task']) . '">';
+                        echo '<input type="hidden" name="task_id" value="'
+                            . htmlspecialchars($product['id_task']) . '">';
                         echo '<input type="hidden" name="token" value="' . $_SESSION['token'] . '">';
                         echo '<button type="submit" class="button__remove">x</button>';
                         echo '</form></li>';
