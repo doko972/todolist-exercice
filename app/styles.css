@@ -227,27 +227,42 @@ label {
     margin-left: 0.25rem;
 }
 
-.button__done {
-    width: 2rem;
-    height: 2rem;
-    appearance: none;
-    border: 2px solid var(--brown);
-    border-radius: 0.2rem;
-    position: relative;
-    background-color: var(--black);
-}
-
-.button__done:checked {
-    border-color: var(--brown);
+/* .button__done {
     background-color: var(--orange);
+
+    border: solid 2px var(--orange);
+    border-radius: 5px;
+    padding: 10px;
+    color: var(--egg-shell);
+    cursor: pointer;
+    width: 100%;
 }
 
-.button__done:checked:after {
-    /* content: url('img/check.svg'); */
+.button__done:hover,
+.button__done:focus {
+    border: solid 2px var(--brown);
     background-image: url('img/check.svg');
-    width: 0.625rem;
-    height: 0.625rem;
-    position: absolute;
-    bottom: 3rem;
-    right: 2rem;
+}
+
+.button__done:active {
+    background-color: darken(var(--orange), 20%);
+
+} */
+
+.button__done {
+    background-color: var(--black);
+    border: 1px solid var(--orange);
+    border-radius: 5px;
+    padding: 10px 20px;
+    color: var(--egg-shell);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.button__done:hover {
+    background-color: var(--orange);
+    color: var(--black);
+}
+.button__done:checked {
+    background-image: url('img/check.svg');
 }

@@ -99,7 +99,7 @@ if (!empty($_POST['task_id']) && !empty($_POST['token']) && $_POST['token'] === 
                 <div class="task-item">
                     <?php
                     $query = $dbConnect->prepare("SELECT id_task, priority, description, creation_date, done 
-                                                      FROM task ORDER BY priority;");
+                                                      FROM task WHERE done = 0 ORDER BY priority;");
                     $query->execute();
                     $result = $query->fetchAll();
                     foreach ($result as $product) {
@@ -116,16 +116,17 @@ if (!empty($_POST['task_id']) && !empty($_POST['token']) && $_POST['token'] === 
                             . '<input type="hidden" name="token" value="' . $_SESSION['token'] . '">'
                             . '<input type="hidden" name="action" value="delete">'
                             . '<button type="submit" class="button__remove">x</button>'
-                            . '</form>';
+                            . '</form>'
+                            . '</ul>';
                         //button done
                         echo '<form method="POST" action="" style="display: inline;">'
                         . '<input type="hidden" name="task_id" value="'
                             . htmlspecialchars($product['id_task']) . '">'
                         . '<input type="hidden" name="token" value="' . $_SESSION['token'] . '">'
                         . '<input type="hidden" name="action" value="done">'
-                        . '<button type="submit" class="button__done"></button>'
-                        . '</form></li>'
-                        . '</ul>';
+                        . '<button type="submit" class="button__done">Tâche faite</button>'
+                        . '</form></li>';
+
                     } ?>
                 </div>
 
