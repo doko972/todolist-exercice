@@ -201,7 +201,7 @@ ul {
     color: var(--black);
 }
 /*check box*/
-.done {
+/* .done {
     width: 2rem;
     height: 2rem;
     appearance: none;
@@ -221,11 +221,33 @@ ul {
     position: absolute;
     bottom: 3rem;
     right: 2rem;
-}
+} */
 
 label {
     margin-left: 0.25rem;
 }
 
+.button__done {
+    width: 2rem;
+    height: 2rem;
+    appearance: none;
+    border: 2px solid var(--brown);
+    border-radius: 0.2rem;
+    position: relative;
+    background-color: var(--black);
+}
 
-  
+.button__done:checked {
+    border-color: var(--brown);
+    background-color: var(--orange);
+}
+
+.button__done:checked:after {
+    /* content: url('img/check.svg'); */
+    background-image: url('img/check.svg');
+    width: 0.625rem;
+    height: 0.625rem;
+    position: absolute;
+    bottom: 3rem;
+    right: 2rem;
+}
