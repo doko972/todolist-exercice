@@ -43,8 +43,7 @@ generateToken();
             <h2>Créer une tâche</h2>
             <form method="POST" action="actions.php">
                 <div class="task__list__create">
-                    <input class="container__post--add" type="text" name="description"
-                        placeholder="Ajouter chose(s) à faire" required>
+                    <input class="container__post--add" type="text" name="description" placeholder="Ajouter chose(s) à faire" required>
                     <input type="hidden" name="token" value="<?= $_SESSION['token']; ?>">
                     <select class="select__priority" name="priority">
                         <option value="1">Haut</option>
@@ -61,11 +60,16 @@ generateToken();
                     $query->execute();
                     $result = $query->fetchAll();
                     foreach ($result as $product) {
+                        $date = new DateTime($product['creation_date']);
+                        $formattedDate = $date->format('d/m/Y');
+
                         echo '<ul class="container-action">'
                             . '<li class="container__post--task">'
                             . htmlspecialchars($product['priority']) . ' - '
                             . htmlspecialchars($product['description']) . ' '
-                            . htmlspecialchars($product['creation_date'])
+                            . '<p>'
+                            . $formattedDate
+                            . '</p>'
                             . '</li>';
 
                         echo '<ul class="action-btn">'
@@ -88,7 +92,7 @@ generateToken();
                             . '<button type="submit" class="button__remove">Fait</button>'
                             . '</form>'
                             . '</li>'
-                            .'</ul>'
+                            . '</ul>'
                             . '</ul>';
 
                         echo '<li">'
@@ -98,8 +102,13 @@ generateToken();
                             . '<input type="hidden" name="token" value="' . $_SESSION['token'] . '">'
                             . '<input type="hidden" name="action" value="modify">'
                             . '<div class="task-title">'
-                            . '<input type="text" name="new_description" placeholder="Nouvelle tâche" class="container__post--text">'
+                            . '<input type="text" name="newDescription" placeholder="Nouvelle tâche" class="container__post--text">'
                             . '<button type="submit" class="button__remove button__remove--mg">Modifier taches</button>'
+                            . '<select name="newPriority" class="select-priority--md">'
+                            . '<option value="1"' . ($product['priority'] == 1 ? ' selected' : '') . '>Haut</option>'
+                            . '<option value="2"' . ($product['priority'] == 2 ? ' selected' : '') . '>Moyen</option>'
+                            . '<option value="3"' . ($product['priority'] == 3 ? ' selected' : '') . '>Bas</option>'
+                            . '</select>'
                             . '</div>'
                             . '</form>'
                             . '</li>';
