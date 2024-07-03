@@ -52,7 +52,6 @@ function getHtmlErrors(array $errorsList): string
  */
 function getHtmlMessages(array $messagesList): string
 {
-
     if (isset($_SESSION['msg'])) {
         $m = $_SESSION['msg'];
         unset($_SESSION['msg']);

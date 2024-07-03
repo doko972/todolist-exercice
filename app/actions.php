@@ -9,16 +9,24 @@ if (!empty($_REQUEST['description']) && isset($_REQUEST['buttonAdd'])) {
     errorCsrf();
 
     if (strlen($_REQUEST['description']) <= 150) {
+        $query = $dbConnect->prepare("SELECT COUNT(*) AS total_tasks FROM task WHERE done = 0");
+        $query->execute();
+        $result = $query->fetch();
+        $totalTasks = $result['total_tasks'];
+        $newPriority = $totalTasks + 1;
+
         $insert = $dbConnect->prepare("INSERT INTO `task` (`priority`, `description`, `creation_date`, `done`) 
             VALUES (:priority, :description, NOW(), 0);");
-        $insert->bindValue(':priority', htmlspecialchars($_REQUEST['priority']));
+        $insert->bindValue(':priority', $newPriority, PDO::PARAM_INT);
         $insert->bindValue(':description', htmlspecialchars($_REQUEST['description']));
         if ($insert->execute()) {
-            header('Location: index.php?msg=insert_ok');
+            $_SESSION['msg'] = 'insert_ok';
+            header('Location: index.php');
             exit;
         }
     }
-    header('Location: index.php?msg=insert_ko');
+    $_SESSION['error'] = 'insert_ko';
+    header('Location: index.php');
     exit;
 }
 
@@ -28,32 +36,94 @@ if (!empty($_REQUEST['task_id']) && !empty($_REQUEST['token']) && $_REQUEST['tok
         $delete = $dbConnect->prepare("DELETE FROM task WHERE id_task = :task_id");
         $delete->bindParam(':task_id', $taskId, PDO::PARAM_INT);
         if ($delete->execute()) {
-            header("Location: index.php?msg=delete_success");
+            $_SESSION['msg'] = 'delete_success';
+            header("Location: index.php");
             exit;
         }
-        header("Location: index.php?msg=delete_failure");
+        $_SESSION['error'] = 'delete_failure';
+        header("Location: index.php");
         exit;
     }
     if ($_REQUEST['action'] === 'done') {
         $update = $dbConnect->prepare("UPDATE task SET done = 1 WHERE id_task = :task_id");
         $update->bindParam(':task_id', $taskId, PDO::PARAM_INT);
         if ($update->execute()) {
-            header("Location: index.php?msg=done_success");
+            $_SESSION['msg'] = 'done_success';
+            header("Location: index.php");
             exit;
         }
-        header("Location: index.php?msg=update_failure");
+        $_SESSION['error'] = 'update_failure';
+        header("Location: index.php");
         exit;
     }
-    if ($_REQUEST['action'] === 'modify' && !empty($_REQUEST['newDescription']) && isset($_REQUEST['newPriority'])) {
-        $update = $dbConnect->prepare("UPDATE task SET description = :description, priority = :priority WHERE id_task = :task_id");
-        $update->bindValue(':description', htmlspecialchars($_REQUEST['newDescription']), PDO::PARAM_STR);
-        $update->bindValue(':priority', htmlspecialchars($_REQUEST['newPriority']), PDO::PARAM_INT);
-        $update->bindParam(':task_id', $taskId, PDO::PARAM_INT);
-        if ($update->execute()) {
-            header("Location: index.php?msg=update_success");
+    if ($_REQUEST['action'] === 'increase_priority') {
+        $query = $dbConnect->prepare("SELECT priority FROM task WHERE id_task = :task_id");
+        $query->bindParam(':task_id', $taskId, PDO::PARAM_INT);
+        $query->execute();
+        $result = $query->fetch();
+
+        if ($result && $result['priority'] > 1) {
+            $currentPriority = $result['priority'];
+            $newPriority = $currentPriority - 1;
+
+            $update = $dbConnect->prepare("UPDATE task SET priority = priority + 1 WHERE priority >= :newPriority AND priority < :currentPriority");
+            $update->bindParam(':newPriority', $newPriority, PDO::PARAM_INT);
+            $update->bindParam(':currentPriority', $currentPriority, PDO::PARAM_INT);
+            $update->execute();
+
+            $update = $dbConnect->prepare("UPDATE task SET priority = :newPriority WHERE id_task = :task_id");
+            $update->bindParam(':newPriority', $newPriority, PDO::PARAM_INT);
+            $update->bindParam(':task_id', $taskId, PDO::PARAM_INT);
+            if ($update->execute()) {
+                $_SESSION['msg'] = 'priority_increased';
+                header("Location: index.php");
+                exit;
+            }
+            $_SESSION['error'] = 'priority_increase_failure';
+            header("Location: index.php");
             exit;
         }
-        header("Location: index.php?msg=update_failure");
+    }
+    if ($_REQUEST['action'] === 'decrease_priority') {
+        $query = $dbConnect->prepare("SELECT priority FROM task WHERE id_task = :task_id");
+        $query->bindParam(':task_id', $taskId, PDO::PARAM_INT);
+        $query->execute();
+        $result = $query->fetch();
+
+        if ($result) {
+            $currentPriority = $result['priority'];
+            $newPriority = $currentPriority + 1;
+
+            $update = $dbConnect->prepare("UPDATE task SET priority = priority - 1 WHERE priority <= :newPriority AND priority > :currentPriority");
+            $update->bindParam(':newPriority', $newPriority, PDO::PARAM_INT);
+            $update->bindParam(':currentPriority', $currentPriority, PDO::PARAM_INT);
+            $update->execute();
+
+            $update = $dbConnect->prepare("UPDATE task SET priority = :newPriority WHERE id_task = :task_id");
+            $update->bindParam(':newPriority', $newPriority, PDO::PARAM_INT);
+            $update->bindParam(':task_id', $taskId, PDO::PARAM_INT);
+            if ($update->execute()) {
+                $_SESSION['msg'] = 'priority_decreased';
+                header("Location: index.php");
+                exit;
+            }
+            $_SESSION['error'] = 'priority_decrease_failure';
+            header("Location: index.php");
+            exit;
+        }
+    }
+    if ($_REQUEST['action'] === 'edit' && !empty($_REQUEST['new_description'])) {
+        $newDescription = htmlspecialchars($_REQUEST['new_description']);  // Correction pour la première erreur
+        $update = $dbConnect->prepare("UPDATE task SET description = :description WHERE id_task = :task_id");
+        $update->bindParam(':description', $newDescription, PDO::PARAM_STR);
+        $update->bindParam(':task_id', $taskId, PDO::PARAM_INT);
+        if ($update->execute()) {
+            $_SESSION['msg'] = 'edit_success';
+            header("Location: index.php");
+            exit;
+        }
+        $_SESSION['error'] = 'edit_failure';
+        header("Location: index.php");
         exit;
     }
 }
