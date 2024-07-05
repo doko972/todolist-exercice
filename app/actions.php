@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 include "include/_config.php";
 include "include/_functions.php";
 
@@ -14,11 +13,14 @@ if (!empty($_REQUEST['description']) && isset($_REQUEST['buttonAdd'])) {
         $result = $query->fetch();
         $totalTasks = $result['total_tasks'];
         $newPriority = $totalTasks + 1;
+        
+        $rememberDate = !empty($_REQUEST['remember_date']) ? $_REQUEST['remember_date'] : null;
 
-        $insert = $dbConnect->prepare("INSERT INTO `task` (`priority`, `description`, `creation_date`, `done`) 
-            VALUES (:priority, :description, NOW(), 0);");
+        $insert = $dbConnect->prepare("INSERT INTO `task` (`priority`, `description`, `creation_date`, `done`, `remember`) 
+            VALUES (:priority, :description, NOW(), 0, :remember);");
         $insert->bindValue(':priority', $newPriority, PDO::PARAM_INT);
         $insert->bindValue(':description', htmlspecialchars($_REQUEST['description']));
+        $insert->bindValue(':remember', $rememberDate);
         if ($insert->execute()) {
             $_SESSION['msg'] = 'insert_ok';
             header('Location: index.php');
@@ -113,9 +115,12 @@ if (!empty($_REQUEST['task_id']) && !empty($_REQUEST['token']) && $_REQUEST['tok
         }
     }
     if ($_REQUEST['action'] === 'edit' && !empty($_REQUEST['new_description'])) {
-        $newDescription = htmlspecialchars($_REQUEST['new_description']);  // Correction pour la première erreur
-        $update = $dbConnect->prepare("UPDATE task SET description = :description WHERE id_task = :task_id");
+        $newDescription = htmlspecialchars($_REQUEST['new_description']);
+        $newRememberDate = !empty($_REQUEST['new_remember_date']) ? $_REQUEST['new_remember_date'] : null;
+
+        $update = $dbConnect->prepare("UPDATE task SET description = :description, remember = :remember WHERE id_task = :task_id");
         $update->bindParam(':description', $newDescription, PDO::PARAM_STR);
+        $update->bindParam(':remember', $newRememberDate);
         $update->bindParam(':task_id', $taskId, PDO::PARAM_INT);
         if ($update->execute()) {
             $_SESSION['msg'] = 'edit_success';

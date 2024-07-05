@@ -4,11 +4,9 @@ include "include/_config.php";
 include "include/_functions.php";
 
 generateToken();
-
 ?>
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,7 +23,6 @@ generateToken();
         }
     </script>
 </head>
-
 <body>
     <header class="header">
         <nav class="navbar">
@@ -42,7 +39,6 @@ generateToken();
             </div>
         </nav>
     </header>
-
     <section>
         <h1>Fiche de tâches</h1>
         <div class="container">
@@ -53,8 +49,8 @@ generateToken();
             ?>
             <form method="POST" action="actions.php">
                 <div class="task__list__create">
-                    <input class="container__post--add" type="text" name="description"
-                        placeholder="Ajouter chose(s) à faire" required>
+                    <input class="container__post--add" type="text" name="description" placeholder="Ajouter chose(s) à faire" required>
+                    <!-- <input type="date" name="remember_date" placeholder="Date de rappel"> -->
                     <input type="hidden" name="token" value="<?= $_SESSION['token']; ?>">
                 </div>
                 <button type="submit" name="buttonAdd" class="button__add-task">Ajouter une tâche</button>
@@ -62,7 +58,7 @@ generateToken();
             <div class="task__list">
                 <div class="task-item">
                     <?php
-                    $query = $dbConnect->prepare("SELECT id_task, priority, description, creation_date, done FROM task WHERE done = 0 ORDER BY priority ASC;");
+                    $query = $dbConnect->prepare("SELECT id_task, priority, description, creation_date, done, remember FROM task WHERE done = 0 ORDER BY priority ASC;");
                     $query->execute();
                     $result = $query->fetchAll();
                     if (empty($result)) {
@@ -72,12 +68,18 @@ generateToken();
                             $date = new DateTime($product['creation_date']);
                             $formattedDate = $date->format('d/m/Y');
 
+                            $rememberDate = $product['remember'] ? new DateTime($product['remember']) : null;
+                            $formattedRememberDate = $rememberDate ? $rememberDate->format('d/m/Y') : $formattedDate;
+
                             echo '<ul class="container-action">'
                                 . '<li class="container__post--task">'
                                 . htmlspecialchars($product['priority']) . ' - '
                                 . htmlspecialchars($product['description']) . ' '
                                 . '<p>'
                                 . $formattedDate
+                                . '</p>'
+                                . '<p>'
+                                . $formattedRememberDate
                                 . '</p>'
                                 . '</li>';
 
@@ -99,7 +101,6 @@ generateToken();
                                 . '</form>'
                                 . '</li>'
                                 . '</ul>';
-
 
                             echo '<ul class="action-btn">'
                                 . '<li>'
@@ -124,7 +125,6 @@ generateToken();
                                 . '</li>';
 
                             echo '<li>'
-                                
                                 . '</li>'
                                 . '</ul>'
                                 . '</ul>';
@@ -135,6 +135,7 @@ generateToken();
                                 . '<input type="hidden" name="token" value="' . $_SESSION['token'] . '">'
                                 . '<input type="hidden" name="action" value="edit">'
                                 . '<input type="text" name="new_description" value="' . htmlspecialchars($product['description']) . '" required>'
+                                . '<input type="date" name="new_remember_date" value="' . htmlspecialchars($formattedRememberDate) . '">'
                                 . '<button type="submit" class="button__submit-edit">Valider la modification</button>'
                                 . '</form>'
                                 . '</div>';
@@ -146,5 +147,4 @@ generateToken();
         </div>
     </section>
 </body>
-
 </html>
