@@ -2,6 +2,7 @@
 session_start();
 include "include/_config.php";
 include "include/_functions.php";
+include 'include/_database.php';
 
 generateToken();
 ?>
@@ -50,7 +51,6 @@ generateToken();
             <form method="POST" action="actions.php">
                 <div class="task__list__create">
                     <input class="container__post--add" type="text" name="description" placeholder="Ajouter chose(s) à faire" required>
-                    <!-- <input type="date" name="remember_date" placeholder="Date de rappel"> -->
                     <input type="hidden" name="token" value="<?= $_SESSION['token']; ?>">
                 </div>
                 <button type="submit" name="buttonAdd" class="button__add-task">Ajouter une tâche</button>
@@ -75,9 +75,9 @@ generateToken();
                                 . '<li class="container__post--task">'
                                 . htmlspecialchars($product['priority']) . ' - '
                                 . htmlspecialchars($product['description']) . ' '
-                                . '<p>'
-                                . $formattedDate
-                                . '</p>'
+                                // . '<p>'
+                                // . $formattedDate
+                                // . '</p>'
                                 . '<p>'
                                 . $formattedRememberDate
                                 . '</p>'
@@ -109,7 +109,7 @@ generateToken();
                                 . htmlspecialchars($product['id_task']) . '">'
                                 . '<input type="hidden" name="token" value="' . $_SESSION['token'] . '">'
                                 . '<input type="hidden" name="action" value="delete">'
-                                . '<button type="submit" class="button__remove">Supprimer</button>'
+                                . '<button type="submit" id="deleteId" class="button__remove">Supprimer</button>'
                                 . '</form>'
                                 . '</li>';
 
@@ -146,5 +146,6 @@ generateToken();
             </div>
         </div>
     </section>
+    <script type="module" src="js/script.js"></script>
 </body>
 </html>

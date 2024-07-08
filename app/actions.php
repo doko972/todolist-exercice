@@ -2,6 +2,7 @@
 session_start();
 include "include/_config.php";
 include "include/_functions.php";
+include 'include/_database.php';
 
 if (!empty($_REQUEST['description']) && isset($_REQUEST['buttonAdd'])) {
     refererHttp('index.php');
